@@ -1,0 +1,20 @@
+{application, carrot, [{description, "Rabbit MQ Feed Producer and Consumer."},
+                       {vsn, "1.0.0"},
+                       {mod, {carrot_app, []}},
+                       {modules, [carrot,
+                                  carrot_app,
+                                  carrot_consumer,
+                                  carrot_channel_sup,
+                                  carrot_producer,
+                                  carrot_registry,
+                                  carrot_registry_sup
+                                 ]},
+                       {registered, [carrot_registry_sup,
+                                     carrot_registry,
+                                     carrot_channel_sup]},
+                       {applications, [kernel,
+                                       stdlib,
+                                       uuid,
+                                       amqp_client]},
+                       {env,[]}
+                      ]}.

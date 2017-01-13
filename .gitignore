@@ -1,0 +1,9 @@
+/carrot.d
+/.erlang.mk/
+/deps/
+/elvis
+/ebin/
+/.carrot.plt
+/logs/
+/test/*.beam
+/log/
