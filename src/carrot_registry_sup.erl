@@ -17,7 +17,7 @@ start_link(RabbitHost, RabbitPort, RabbitCfg) ->
 
 init([RabbitHost, RabbitPort, RabbitCfg]) ->
     {ok, {{rest_for_one, 1, 5},
-          [worker(carrot_registry, permanent, [RabbitHost, RabbitPort,
+          [worker(carrot_registry, transient, [RabbitHost, RabbitPort,
                                                RabbitCfg]),
            supervisor(carrot_channel_sup)]}}.
 

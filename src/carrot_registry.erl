@@ -107,7 +107,7 @@ handle_info(connect, #state{connection = undefined} = State) ->
 handle_info({'DOWN', Ref, process, _Pid, _Reason},
             #state{channels = Channels} = State) ->
     Channel = maps:get(Ref, Channels),
-    ?LOG_ERR("Closing channel ~p", [Channel]),
+    ?LOG_INFO("Closing channel ~p", [Channel]),
     amqp_channel:close(Channel),
     erlang:demonitor(Ref),
     UpdatedChannels = maps:remove(Ref, Channels),
@@ -116,6 +116,11 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, State) ->
+    [begin
+         ?LOG_INFO("Terminate closing channel ~p", [Channel]),
+         amqp_channel:close(Channel)
+     end || Channel <- maps:values(State#state.channels)],
+    ?LOG_INFO("Closing connection ~p", [State#state.connection]),
     amqp_connection:close(State#state.connection),
     ok.
 

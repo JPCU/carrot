@@ -1,6 +1,7 @@
 -module(carrot).
 
 -export([start/0,
+         stop/0,
          config/1,
          exchange_declare/4,
          queue_declare/3,
@@ -20,6 +21,8 @@
 %%
 
 start() -> application:ensure_all_started(carrot).
+
+stop() -> gen_server:stop(carrot_registry, normal, 5000).
 
 -spec config(atom()) -> any().
 config(rabbit_host = Key) ->
