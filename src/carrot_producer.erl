@@ -15,7 +15,10 @@
          start_link/1,
          send_message/2,
          send_message/3,
-         send_message/4
+         send_message/4,
+         sync_send_message/2,
+         sync_send_message/3,
+         sync_send_message/4
         ]).
 
 %% gen_server.
@@ -50,7 +53,17 @@ send_message(Module, Payload, RoutingKey) ->
 
 send_message(Module, Payload, RoutingKey, Props) ->
     gen_server:call(ref(Module),
-                    {send_message, Payload, RoutingKey, Props}).
+                    {send_message, true, Payload, RoutingKey, Props}).
+
+sync_send_message(Module, Payload) ->
+    sync_send_message(Module, Payload, default, #{}).
+
+sync_send_message(Module, Payload, RoutingKey) ->
+    sync_send_message(Module, Payload, RoutingKey, #{}).
+
+sync_send_message(Module, Payload, RoutingKey, Props) ->
+    gen_server:call(ref(Module),
+                    {send_message, false, Payload, RoutingKey, Props}).
 
 %% ------------------------------ < gen_server > -------------------------------
 
@@ -59,7 +72,7 @@ init([Module]) ->
     carrot_registry:request_connection(),
     {ok, #state{callback_module = Module}}.
 
-handle_call({send_message, Payload, RoutingKey, Props},
+handle_call({send_message, Async, Payload, RoutingKey, Props},
             _From,
             #state{channel = Channel,
                    exchange = ExchangeName,
@@ -74,9 +87,10 @@ handle_call({send_message, Payload, RoutingKey, Props},
 
     ConvertedProps = carrot:to_p_basic(maps:merge(DefaultProps, Props)),
 
-    amqp_channel:cast(Channel, Publish, #amqp_msg{
-                                           props = ConvertedProps,
-                                           payload = Payload}),
+    F = amqp_channel_call(Async),
+    F(Channel, Publish, #amqp_msg{
+                           props = ConvertedProps,
+                           payload = Payload}),
 
     {reply, ok, State};
 handle_call(Msg, _From, State) ->
@@ -130,3 +144,6 @@ ref(Mod) -> carrot:ref(?MODULE, Mod:producer_name()).
 
 maybe_default(default, Default) -> Default;
 maybe_default(Other, _Default)  -> Other.
+
+amqp_channel_call(true)  -> fun amqp_channel:cast/3;
+amqp_channel_call(false) -> fun amqp_channel:call/3.
