@@ -88,11 +88,11 @@ handle_call({send_message, Async, Payload, RoutingKey, Props},
     ConvertedProps = carrot:to_p_basic(maps:merge(DefaultProps, Props)),
 
     F = amqp_channel_call(Async),
-    F(Channel, Publish, #amqp_msg{
-                           props = ConvertedProps,
-                           payload = Payload}),
+    R = F(Channel, Publish, #amqp_msg{
+                                props = ConvertedProps,
+                                payload = Payload}),
 
-    {reply, ok, State};
+    {reply, R, State};
 handle_call(Msg, _From, State) ->
     ?LOG_WARN("Received message: ~p", [Msg]),
     {reply, ignored, State}.
