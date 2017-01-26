@@ -19,10 +19,10 @@
 
 -callback consumer_name() -> atom().
 
--callback received_init_msg() -> atom().
+-callback received_init_msg() -> term().
 
 %% responsible for calling ack_msg with the delivery tag
--callback received_msg(binary(), any(), map()) -> atom().
+-callback received_msg(binary(), any(), map(), term()) -> atom().
 
 %% gen_server.
 -export([init/1,
@@ -36,6 +36,7 @@
           id,
           callback_module,
           channel,
+          consumer_state,
           consumer_tag
 }).
 
@@ -126,16 +127,17 @@ handle_info(#'basic.consume_ok'{consumer_tag = ConsumerTag},
             #state{
                consumer_tag = ConsumerTag,
                callback_module = Module} = State) ->
-    Module:received_init_msg(),
-    {noreply, State};
+    CState = Module:received_init_msg(),
+    {noreply, State#state{consumer_state = CState}};
 handle_info({#'basic.deliver'{consumer_tag = ConsumerTag,
                               delivery_tag = DeliveryTag},
             #amqp_msg{payload = Payload, props = Props}},
             #state{
                consumer_tag = ConsumerTag,
+               consumer_state = CState,
                callback_module = Module} = State) ->
     PropsMap = maps:from_list(record_to_proplist(Props)),
-    Module:received_msg(DeliveryTag, Payload, PropsMap),
+    Module:received_msg(DeliveryTag, Payload, PropsMap, CState),
     {noreply, State};
 handle_info({Module, Msg},
             #state{callback_module = Module} = State) ->
