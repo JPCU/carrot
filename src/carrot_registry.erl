@@ -145,7 +145,7 @@ get_value_from_list_by_name(List, LookupName) ->
                    LookupName /= Name
            end,
            List) of
-        [] -> {error, "No such item in list: " ++ LookupName};
+        [] -> {error, "No such item in list: " ++ atom_to_list(LookupName)};
         [P | _] -> {ok, P}
     end.
 
