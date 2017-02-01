@@ -47,7 +47,7 @@ start(Module, Id) ->
     carrot_channel_sup:start_child(
       {carrot:ref(?MODULE, Module:consumer_name(), Id),
        {?MODULE, start_link, [Module, Id]},
-       temporary, 5000, worker, [?MODULE]}).
+       transient, 5000, worker, [?MODULE]}).
 
 stop(Pid) -> gen_server:cast(Pid, stop).
 
