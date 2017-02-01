@@ -137,6 +137,7 @@ connect(Host, Port) ->
         }).
 
 get_typed_cfg(Cfg, {Type, Name}) ->
+    ?LOG_INFO("Getting config for ~p of type ~p~ncfg: ~p~n", [Name, Type, Cfg]),
     get_value_from_list_by_name(maps:get(Type, Cfg, #{}), Name).
 
 get_value_from_list_by_name(List, LookupName) ->
