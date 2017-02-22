@@ -132,8 +132,9 @@ connect(Host, Port) ->
     ?LOG_INFO("Connecting to RabbitMQ (~p:~p)...~n", [Host, Port]),
     amqp_connection:start(
       #amqp_params_network{
-         host = Host,
-         port = Port
+         host      = Host,
+         port      = Port,
+         heartbeat = 5
         }).
 
 get_typed_cfg(Cfg, {Type, Name}) ->
