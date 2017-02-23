@@ -1,6 +1,6 @@
 PROJECT = carrot
-PROJECT_DESCRIPTION = New project
-PROJECT_VERSION = 0.0.9-SNAPSHOT
+PROJECT_DESCRIPTION = Rabbit MQ Feed Producer and Consumer
+PROJECT_VERSION = 1.0.0
 
 DEPS = amqp_client uuid
 TEST_DEPS = gproc
