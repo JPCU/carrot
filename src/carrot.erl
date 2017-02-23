@@ -22,7 +22,7 @@
 
 start() -> application:ensure_all_started(carrot).
 
-stop() -> gen_server:stop(carrot_registry, normal, 5000).
+stop() -> application:stop(carrot).
 
 -spec config(atom()) -> any().
 config(rabbit_host = Key) ->
