@@ -15,14 +15,13 @@ start_link(RabbitHost, RabbitPort, RabbitCfg) ->
       ?MODULE,
       [RabbitHost, RabbitPort, RabbitCfg]).
 
-init([RabbitHost, RabbitPort, RabbitCfg]) ->
+init(RegistryParams) ->
     {ok, {{rest_for_one, 1, 5},
-          [worker(carrot_registry, transient, [RabbitHost, RabbitPort,
-                                               RabbitCfg]),
+          [worker(carrot_registry, transient, RegistryParams),
            supervisor(carrot_channel_sup)]}}.
 
 supervisor(Module) ->
-    supervisor(Module, permanent).
+    supervisor(Module, transient).
 
 supervisor(Module, Restart) ->
     {Module, {Module, start_link, []}, Restart, infinity, supervisor, [Module]}.
