@@ -75,12 +75,6 @@ handle_call(Msg, _From, State) ->
     ?LOG_WARN("Ignored msg: ~p~n", [Msg]),
     {reply, ignored, State}.
 
-handle_cast({connection, Pid},
-            #state{connection = Connection} = State)
-  when Connection /= undefined->
-    ?LOG_INFO("~p requesting Connection ~p", [Pid, Connection]),
-    Pid ! {connection, Connection},
-    {noreply, State};
 handle_cast(_Msg, State) -> {noreply, State}.
 
 handle_info(connect, #state{connection = undefined} = State) ->
