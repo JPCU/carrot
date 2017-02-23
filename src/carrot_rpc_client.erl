@@ -107,7 +107,7 @@ handle_info(setup_channel,
       }} = carrot_registry:typed_config({rpc_clients, Name}),
     RpcServerQueueBin = list_to_binary(RpcServerQueue),
 
-    {ok, Channel} = carrot_registry:open_channel(),
+    {ok, Channel} = carrot_registry:open_channel({?MODULE, [Module]}),
 
     {ok, CallbackQueue} = carrot:callback_queue_declare(Channel),
     ?LOG_INFO("RPC Callback Queue declared: ~p~n", [CallbackQueue]),

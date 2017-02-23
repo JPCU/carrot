@@ -7,7 +7,7 @@
 %% API.
 -export([typed_config/1,
          exchange_prefix/0,
-         open_channel/0,
+         open_channel/1,
          start_link/3]).
 
 %% gen_server.
@@ -35,11 +35,13 @@ typed_config(TypedName) ->
 -spec exchange_prefix() -> {ok, list()}.
 exchange_prefix() -> gen_server:call(?MODULE, exchange_prefix).
 
--spec open_channel() -> {ok, pid()}.
-open_channel() -> gen_server:call(?MODULE, open_channel).
+-spec open_channel({atom(), atom(), atom()}) -> {ok, pid()}.
+open_channel(ControllerSpec) ->
+    gen_server:call(?MODULE, {open_channel, ControllerSpec}).
 
 -spec start_link(string(), integer(), map()) -> {ok, pid()}.
 start_link(RabbitHost, RabbitPort, RabbitCfg) ->
+    catch ets:new(?MODULE, [named_table, public]),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [RabbitHost,
                                                       RabbitPort,
                                                       RabbitCfg], []).
@@ -63,11 +65,12 @@ handle_call(exchange_prefix,
             _From,
             #state{rabbit_cfg = Cfg} = State) ->
     {reply, {ok, get_exchange_prefix(Cfg)}, State};
-handle_call(open_channel,
+handle_call({open_channel, ControllerSpec},
             {Pid, _},
             #state{channels   = Channels,
                    connection = Connection} = State) ->
     Ref = erlang:monitor(process, Pid),
+    ets:insert(?MODULE, ControllerSpec),
     {ok, Channel} = amqp_connection:open_channel(Connection),
     UpdatedChannels = Channels#{Ref => Channel},
     {reply, {ok, Channel}, State#state{channels = UpdatedChannels}};
@@ -83,11 +86,10 @@ handle_info(connect, #state{connection = undefined} = State) ->
             ?LOG_DEBUG("Connected."),
             link(Connection),
             lists:foreach(
-              fun({_, Child, _, _}) when is_pid(Child) ->
-                      Child ! {connection, Connection};
-                 (_) -> ok
+              fun({Module, Args}) ->
+                      apply(Module, start, Args)
               end,
-              carrot_channel_sup:which_children()),
+              ets:tab2list(?MODULE)),
             {noreply, State#state{connection=Connection}};
         {error, Reason} ->
             ?LOG_ERR("Failed to connect: ~p~n", [Reason]),

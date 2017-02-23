@@ -116,7 +116,7 @@ handle_info(setup_channel,
 
     {ok, ExchangePrefix} = carrot_registry:exchange_prefix(),
 
-    {ok, Channel} = carrot_registry:open_channel(),
+    {ok, Channel} = carrot_registry:open_channel({?MODULE, [Module]}),
 
     ExchangeFullName = carrot:prefix_name_as_bin(ExchangePrefix, ExchangeName),
 

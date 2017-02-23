@@ -85,7 +85,7 @@ handle_info(setup_channel,
 
     {ok, ExchangePrefix} = carrot_registry:exchange_prefix(),
 
-    {ok, Channel} = carrot_registry:open_channel(),
+    {ok, Channel} = carrot_registry:open_channel({?MODULE, [Module, Id]}),
 
     {ok, Queue} = carrot:queue_declare(
                     Channel,
