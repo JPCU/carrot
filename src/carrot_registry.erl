@@ -134,7 +134,7 @@ connect(Host, Port) ->
       #amqp_params_network{
          host      = Host,
          port      = Port,
-         heartbeat = 5
+         heartbeat = 30
         }).
 
 get_typed_cfg(Cfg, {Type, Name}) ->
