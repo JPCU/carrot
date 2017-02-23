@@ -92,6 +92,7 @@ handle_info(connect, #state{connection = undefined} = State) ->
     case connect(State#state.rabbit_host, State#state.rabbit_port) of
         {ok, Connection} ->
             ?LOG_DEBUG("Connected."),
+            link(Connection),
             lists:foreach(
               fun({_, Child, _, _}) when is_pid(Child) ->
                       Child ! {connection, Connection};
