@@ -54,7 +54,7 @@ start_link(Module, Id) -> gen_server:start_link(?MODULE, [Module, Id], []).
 %% ------------------------------ < gen_server > -------------------------------
 
 init([Module, Id]) ->
-    carrot_registry:request_connection(),
+    self() ! setup_channel,
     {ok, #state{id = Id,
                 callback_module = Module}}.
 
@@ -70,7 +70,7 @@ handle_cast({ack_message, DeliveryTag},
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_info({connection, Connection},
+handle_info(setup_channel,
             #state{id = Id,
                    callback_module = Module,
                    channel = undefined} = State) ->
@@ -85,7 +85,7 @@ handle_info({connection, Connection},
 
     {ok, ExchangePrefix} = carrot_registry:exchange_prefix(),
 
-    {ok, Channel} = carrot_registry:open_channel(Connection),
+    {ok, Channel} = carrot_registry:open_channel(),
 
     {ok, Queue} = carrot:queue_declare(
                     Channel,

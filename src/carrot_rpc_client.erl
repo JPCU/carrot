@@ -51,7 +51,7 @@ call_server(Module, Payload) ->
 
 init([Module]) ->
     register(ref(Module), self()),
-    carrot_registry:request_connection(),
+    self() ! setup_channel,
     {ok, #state{callback_module = Module}}.
 
 handle_call({call_server, Payload},
@@ -95,7 +95,7 @@ handle_cast({ack_message, DeliveryTag},
 handle_cast(_Msg, State) -> {noreply, State}.
 
 
-handle_info({connection, Connection},
+handle_info(setup_channel,
             #state{callback_module = Module,
                    channel = undefined} = State) ->
     Name = Module:rpc_client_name(),
@@ -107,7 +107,7 @@ handle_info({connection, Connection},
       }} = carrot_registry:typed_config({rpc_clients, Name}),
     RpcServerQueueBin = list_to_binary(RpcServerQueue),
 
-    {ok, Channel} = carrot_registry:open_channel(Connection),
+    {ok, Channel} = carrot_registry:open_channel(),
 
     {ok, CallbackQueue} = carrot:callback_queue_declare(Channel),
     ?LOG_INFO("RPC Callback Queue declared: ~p~n", [CallbackQueue]),

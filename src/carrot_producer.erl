@@ -69,7 +69,7 @@ sync_send_message(Module, Payload, RoutingKey, Props) ->
 
 init([Module]) ->
     register(ref(Module), self()),
-    carrot_registry:request_connection(),
+    self() ! setup_channel,
     {ok, #state{callback_module = Module}}.
 
 handle_call({send_message, Async, Payload, RoutingKey, Props},
@@ -99,7 +99,7 @@ handle_call(Msg, _From, State) ->
 
 handle_cast(_Msg, State) -> {noreply, State}.
 
-handle_info({connection, Connection},
+handle_info(setup_channel,
             #state{callback_module = Module,
                    channel = undefined} = State) ->
     Name = Module:producer_name(),
@@ -116,7 +116,7 @@ handle_info({connection, Connection},
 
     {ok, ExchangePrefix} = carrot_registry:exchange_prefix(),
 
-    {ok, Channel} = carrot_registry:open_channel(Connection),
+    {ok, Channel} = carrot_registry:open_channel(),
 
     ExchangeFullName = carrot:prefix_name_as_bin(ExchangePrefix, ExchangeName),
 

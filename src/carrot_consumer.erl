@@ -61,7 +61,7 @@ ack_message(Pid, Id) -> gen_server:cast(Pid, {ack_message, Id}).
 %% ------------------------------ < gen_server > -------------------------------
 
 init([Module, Id]) ->
-    carrot_registry:request_connection(),
+    self() ! setup_channel,
     {ok, #state{ id = Id,
                  callback_module = Module }}.
 
@@ -78,7 +78,7 @@ handle_cast(stop, State) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_info({connection, Connection},
+handle_info(setup_channel,
             #state{
                id = Id,
                callback_module = Module,
@@ -100,7 +100,7 @@ handle_info({connection, Connection},
 
     {ok, ExchangePrefix} = carrot_registry:exchange_prefix(),
 
-    {ok, Channel} = carrot_registry:open_channel(Connection),
+    {ok, Channel} = carrot_registry:open_channel(),
 
     ExchangeFullName = carrot:prefix_name_as_bin(ExchangePrefix, ExchangeName),
     ok = carrot:exchange_declare(Channel,

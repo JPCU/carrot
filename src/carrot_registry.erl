@@ -7,8 +7,7 @@
 %% API.
 -export([typed_config/1,
          exchange_prefix/0,
-         open_channel/1,
-         request_connection/0,
+         open_channel/0,
          start_link/3]).
 
 %% gen_server.
@@ -31,25 +30,19 @@
 
 -spec typed_config({atom(), atom()}) -> {ok, map()}.
 typed_config(TypedName) ->
-    gen_server:call(carrot_registry, {config, TypedName}).
+    gen_server:call(?MODULE, {config, TypedName}).
 
 -spec exchange_prefix() -> {ok, list()}.
-exchange_prefix() -> gen_server:call(carrot_registry, exchange_prefix).
+exchange_prefix() -> gen_server:call(?MODULE, exchange_prefix).
 
--spec open_channel(pid()) -> {ok, pid()}.
-open_channel(Connection) ->
-    {ok, Channel} = amqp_connection:open_channel(Connection),
-    ok = gen_server:call(carrot_registry, {register_channel, self(), Channel}),
-    {ok, Channel}.
+-spec open_channel() -> {ok, pid()}.
+open_channel() -> gen_server:call(?MODULE, open_channel).
 
 -spec start_link(string(), integer(), map()) -> {ok, pid()}.
 start_link(RabbitHost, RabbitPort, RabbitCfg) ->
-    gen_server:start_link({local, carrot_registry}, ?MODULE, [RabbitHost,
-                                                              RabbitPort,
-                                                              RabbitCfg], []).
-
-request_connection() ->
-    gen_server:cast(carrot_registry, {connection, self()}).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [RabbitHost,
+                                                      RabbitPort,
+                                                      RabbitCfg], []).
 
 %% gen_server.
 
@@ -70,12 +63,14 @@ handle_call(exchange_prefix,
             _From,
             #state{rabbit_cfg = Cfg} = State) ->
     {reply, {ok, get_exchange_prefix(Cfg)}, State};
-handle_call({register_channel, Pid, Channel},
-            _From,
-            #state{channels = Channels} = State) ->
+handle_call(open_channel,
+            {Pid, _},
+            #state{channels   = Channels,
+                   connection = Connection} = State) ->
     Ref = erlang:monitor(process, Pid),
+    {ok, Channel} = amqp_connection:open_channel(Connection),
     UpdatedChannels = Channels#{Ref => Channel},
-    {reply, ok, State#state{channels = UpdatedChannels}};
+    {reply, {ok, Channel}, State#state{channels = UpdatedChannels}};
 handle_call(Msg, _From, State) ->
     ?LOG_WARN("Ignored msg: ~p~n", [Msg]),
     {reply, ignored, State}.
