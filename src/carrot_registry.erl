@@ -36,7 +36,7 @@ typed_config(TypedName) ->
 -spec exchange_prefix() -> {ok, list()}.
 exchange_prefix() -> gen_server:call(?MODULE, exchange_prefix).
 
--spec open_channel({atom(), atom(), atom()}) -> {ok, pid()}.
+-spec open_channel({atom(), list()}) -> {ok, pid()}.
 open_channel(ControllerSpec) ->
     gen_server:call(?MODULE, {open_channel, ControllerSpec}).
 
@@ -47,7 +47,7 @@ start_link(RabbitHost, RabbitPort, RabbitCfg) ->
                                                       RabbitPort,
                                                       RabbitCfg], []).
 stop() ->
-    gen_server:stop(carrot_registry, normal, 5000).
+    ok = gen_server:stop(carrot_registry, normal, 5000).
 
 %% gen_server.
 
@@ -111,10 +111,12 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, State) ->
-    [begin
+    lists:foreach(
+      fun(Channel) ->
          ?LOG_INFO("Terminate closing channel ~p", [Channel]),
          amqp_channel:close(Channel)
-     end || Channel <- maps:values(State#state.channels)],
+      end,
+      maps:values(State#state.channels)),
     ?LOG_INFO("Closing connection ~p", [State#state.connection]),
     amqp_connection:close(State#state.connection),
     ok.
