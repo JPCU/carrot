@@ -18,7 +18,7 @@ received_init_msg() ->
     gproc_ps:publish(l, carrots, connected),
     ok.
 
-received_msg(DeliveryTag, Carrot, Props) ->
+received_msg(DeliveryTag, Carrot, Props, ok) ->
     gproc_ps:publish(l, carrots, {DeliveryTag, Carrot, Props}),
     carrot_consumer:ack_message(DeliveryTag).
 

@@ -14,6 +14,6 @@ received_init_msg() ->
     gproc_ps:publish(l, ?MODULE, {connected, self()}),
     ok.
 
-received_msg(DeliveryTag, Msg, Props) ->
+received_msg(DeliveryTag, Msg, Props, ok) ->
     gproc_ps:publish(l, ?MODULE, {event, {Msg, self(), Props}}),
     carrot_consumer:ack_message(self(), DeliveryTag).
