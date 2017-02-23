@@ -13,7 +13,7 @@ start(_Type, _Args) ->
     carrot_registry_sup:start_link(RabbitHost, RabbitPort, RabbitCfg).
 
 prep_stop(State) ->
-    gen_server:stop(carrot_registry, normal, 5000),
+    carrot_registry:stop(),
     State.
 
 stop(_State) -> ok.

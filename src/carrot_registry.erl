@@ -8,7 +8,8 @@
 -export([typed_config/1,
          exchange_prefix/0,
          open_channel/1,
-         start_link/3]).
+         start_link/3,
+         stop/0]).
 
 %% gen_server.
 -export([init/1,
@@ -45,6 +46,8 @@ start_link(RabbitHost, RabbitPort, RabbitCfg) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [RabbitHost,
                                                       RabbitPort,
                                                       RabbitCfg], []).
+stop() ->
+    gen_server:stop(carrot_registry, normal, 5000).
 
 %% gen_server.
 
