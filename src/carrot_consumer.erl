@@ -70,8 +70,7 @@ handle_call(Msg, _From, State) ->
     {reply, ignored, State}.
 
 handle_cast({ack_message, DeliveryTag},
-            #state{
-               channel = Channel} = State) ->
+            #state{channel = Channel} = State) ->
     amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = DeliveryTag}),
     {noreply, State};
 handle_cast(stop, State) ->
