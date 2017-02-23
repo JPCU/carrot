@@ -1,5 +1,6 @@
 Example config:
 
+``` erlang
 {rabbit_cfg, #{
    host => "localhost",
    port => 5672,
@@ -57,3 +58,4 @@ Example config:
                     }
                   ]
   }}
+```
