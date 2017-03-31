@@ -136,8 +136,8 @@ handle_info({#'basic.deliver'{consumer_tag = ConsumerTag,
                consumer_state = CState,
                callback_module = Module} = State) ->
     PropsMap = maps:from_list(record_to_proplist(Props)),
-    Module:received_msg(DeliveryTag, Payload, PropsMap, CState),
-    {noreply, State};
+    NewCState = Module:received_msg(DeliveryTag, Payload, PropsMap, CState),
+    {noreply, State#state{consumer_state = NewCState}};
 handle_info({Module, Msg},
             #state{callback_module = Module} = State) ->
     %% passthrough messages tagged for callback module
